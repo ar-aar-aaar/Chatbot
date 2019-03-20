@@ -57,6 +57,31 @@ class LuisBot {
             await turnContext.sendActivity(`[${ turnContext.activity.type }]-type activity detected.`);
         }
     }
+
+
+    //Para acceder al servicio
+    getUsers() {  
+        var Request = require("request");
+
+        Request.get("http://10.11.1.245:9090/login/users", (error, response, body) => {
+            if(error) {
+                return console.dir(error);
+            }            
+            console.log("BODY: ");
+            var jsonContent=JSON.parse(body);
+            console.log(JSON.parse(body));
+            
+            var prueba = JSON.parse(body);
+            
+            
+            console.log(prueba[0].username);
+            
+            
+            
+            return JSON.parse(body);            
+            
+        });
+    }
 }
 
 module.exports.LuisBot = LuisBot;

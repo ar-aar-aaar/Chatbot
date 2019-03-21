@@ -9,8 +9,11 @@ import mx.com.axity.services.service.impl.becaServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Component
@@ -24,11 +27,16 @@ public class becaFacade implements IbecaFacade {
     ModelMapper modelMapper;
 
     @Override
-    public ContactTO getContactF(String name) {
-        ContactDO contact = this.becaService.getContact(name);
-        LOG.info("----------->>>>>>>>>>>>>" + contact.getId_myaxity());
-        ContactTO contactTO = this.modelMapper.map(contact, ContactTO.class);
-        LOG.info("----------->>>>>>>>>>>>>" + contactTO.getId_myaxity());
+    public List<ContactTO> getContactF(String name) {
+        List<ContactDO> contact = this.becaService.getContact(name);
+        Type contactTOType = new TypeToken<List<ContactTO>>() {}.getType();
+        List<ContactTO> contactTO = this.modelMapper.map(contact, contactTOType);
         return contactTO;
+    }
+
+    @Override
+    public ContactTO getContactBYNameLastname(String name, String lastName) {
+        //ContactDO contactDO = this.becaService.getContactNA()
+        return null;
     }
 }

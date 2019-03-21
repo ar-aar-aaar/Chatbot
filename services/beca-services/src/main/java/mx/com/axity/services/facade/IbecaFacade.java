@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface IbecaFacade {
 
-    ContactTO getContactF(String name);
-
+    List<ContactTO> getContactF(String name);
+    ContactTO getContactBYNameLastname(String name, String lastName);
 }

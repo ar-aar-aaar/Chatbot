@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface IbecaService {
 
-   ContactDO getContact(String name);
+   List<ContactDO> getContact(String name);
+   ContactDO getContactNA(String name, String lastName);
 }

@@ -28,7 +28,17 @@ public class becaServiceImpl implements IbecaService {
 
 
     @Override
-    public ContactDO getContact(String name) {
-        return this.contactDAO.findByName(name);
+    public List<ContactDO> getContact(String name) {
+        return this.contactDAO.findByNameContaining(name);
+        //return this.contactDAO.findByNameLike(name);
     }
+
+    @Override
+    public ContactDO getContactNA(String name, String lastName) {
+        return this.contactDAO.findByNameAndLastName(name, lastName);
+    }
+
+
 }
+
+

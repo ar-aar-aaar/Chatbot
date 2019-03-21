@@ -29,8 +29,9 @@ public class HelloController {
     IbecaFacade IbecaFacade;
 
     @RequestMapping(value = "/getContact", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity getContact(@RequestParam(value = "name")String name) {
-        ContactTO contactTO = this.IbecaFacade.getContactF(name);
+    public ResponseEntity<List<ContactTO>> getContact(@RequestParam(value = "name")String name) {
+        LOG.info(name);
+        List<ContactTO> contactTO = this.IbecaFacade.getContactF(name);
         return new ResponseEntity<>(contactTO,HttpStatus.OK);
     }
 

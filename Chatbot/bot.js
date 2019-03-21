@@ -16,6 +16,7 @@ const question = {
     none: "none"
 }
 
+let vacaciones = false;
 
 /**
  * A simple bot that responds to utterances with answers from the Language Understanding (LUIS) service.
@@ -123,7 +124,7 @@ class LuisBot {
             // If we're just starting off, we haven't asked the user for any information yet.
             // Ask the user for their name and update the conversation flag.
             case question.none:
-                await turnContext.sendActivity("Let's get started. What is your name?");
+                await turnContext.sendActivity("Claro, cual es tu nombre?");
                 flow.lastQuestionAsked = question.name;
                 break;
 
@@ -133,9 +134,10 @@ class LuisBot {
                 result = this.validateName(input);
                 if (result.success) {
                     profile.name = result.name;
-                    await turnContext.sendActivity(`I have your name as ${profile.name}.`);
-                    await turnContext.sendActivity('How old are you?');
-                    flow.lastQuestionAsked = question.age;
+                    await turnContext.sendActivity(`${profile.name} tiene 10 dias de vacaciones.`);
+                    await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                    vacaciones = false;
+                    flow.lastQuestionAsked = question.none;
                     break;
                 } else {
                     // If we couldn't interpret their input, ask them for it again.
@@ -243,8 +245,10 @@ class LuisBot {
             console.log(turnContext.activity.text);
             console.log(turnContext.activity.from.name);
             console.log(results.entities);//$instance.Nombres);
+            console.log(topIntent.intent);
 
-            if (topIntent.intent == 'Telefonos') {
+            if (topIntent.intent == 'Saldo Vacaciones' || vacaciones) {
+                vacaciones = true;
                 const flow = await this.conversationFlow.get(turnContext, { lastQuestionAsked: question.none });
                 const profile = await this.userProfile.get(turnContext, {});
 

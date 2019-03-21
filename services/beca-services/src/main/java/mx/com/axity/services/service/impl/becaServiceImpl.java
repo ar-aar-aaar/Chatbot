@@ -1,7 +1,9 @@
 package mx.com.axity.services.service.impl;
 
 import mx.com.axity.commons.to.UserTO;
+import mx.com.axity.model.ContactDO;
 import mx.com.axity.model.UserDO;
+import mx.com.axity.persistence.IContactDAO;
 import mx.com.axity.persistence.UserDAO;
 import mx.com.axity.services.service.IbecaService;
 import org.apache.logging.log4j.LogManager;
@@ -19,21 +21,14 @@ public class becaServiceImpl implements IbecaService {
     static final Logger LOG = LogManager.getLogger(becaServiceImpl.class);
 
     @Autowired
-    UserDAO userDAO;
+    IContactDAO contactDAO;
 
     @Autowired
     ModelMapper modelMapper;
 
+
     @Override
-    public List<UserTO> getUsers() {
-
-        LOG.info("Consultando usuarios");
-        List<UserDO> usersDO = this.userDAO.findByLastName("Rodriguez");
-
-        Type userDAOType = new TypeToken<List<UserDO>>() {}.getType();
-        List<UserTO> usersTO = this.modelMapper.map(usersDO, userDAOType);
-        LOG.info("Se retornan {} elementos", usersTO.size());
-
-        return usersTO;
+    public ContactDO getContact(String name) {
+        return this.contactDAO.findByName(name);
     }
 }

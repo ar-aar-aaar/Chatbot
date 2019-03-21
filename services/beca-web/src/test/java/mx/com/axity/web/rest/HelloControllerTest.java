@@ -13,8 +13,5 @@ public class HelloControllerTest extends BaseTest {
 
         //this.entityManager.persist(new UserDO("Javier", "Rodriguez", 1));
 
-        List<UserTO> users = this.becaFacade.getAllUsers();
-
-        Assert.assertEquals(1, users.size());
     }
 }

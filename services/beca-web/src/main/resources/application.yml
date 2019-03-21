@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/unbound
+    url: jdbc:postgresql://10.11.1.235:5433/postgres
     username: postgres
     password: project123
     driver-class-name: org.postgresql.Driver
@@ -17,7 +17,7 @@ server:
 
 eureka:
   client:
-    register-with-eureka: true
+    register-with-eureka: false
     fetch-registry: false
     service-url:
       defaultZone: http://gatewayservice:8000/eureka

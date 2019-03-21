@@ -1,22 +1,22 @@
 package mx.com.axity.web.rest;
 
 import io.swagger.annotations.Api;
+import mx.com.axity.commons.to.ContactTO;
 import mx.com.axity.commons.to.UserTO;
+import mx.com.axity.model.ContactDO;
 import mx.com.axity.services.facade.IbecaFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", allowCredentials = "true")
 @RestController
-@RequestMapping("beca")
+@RequestMapping("contact")
 @Api(value="beca", description="Operaciones con beca")
 public class HelloController {
 
@@ -28,16 +28,10 @@ public class HelloController {
     @Autowired
     IbecaFacade IbecaFacade;
 
-    @RequestMapping(value = "/find", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<List<UserTO>> getAllUsers() {
-        LOG.info("Se invoca /find");
-        List<UserTO> users = this.IbecaFacade.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    @RequestMapping(value = "/getContact", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity getContact(@RequestParam(value = "name")String name) {
+        ContactTO contactTO = this.IbecaFacade.getContactF(name);
+        return new ResponseEntity<>(contactTO,HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/test", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity test() {
-        LOG.info("Se invoca /test");
-        return new ResponseEntity<>("Prueba Ok", HttpStatus.OK);
-    }
 }

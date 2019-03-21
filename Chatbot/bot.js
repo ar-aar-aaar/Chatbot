@@ -37,6 +37,23 @@ class LuisBot {
         this.userState = userState;
     }
 
+
+    getUsers() {
+        var Request = require("request");
+        console.log();
+
+        Request.get(`http://10.11.1.235:9090/contact/getContact?name=sergio`, (error, response, body) => {
+            if (error) {
+                return console.dir(error);
+            }
+            console.log("BODY: ");
+            console.log(JSON.parse(body));
+            return JSON.parse(body);
+
+        });
+    }
+
+
     // Validates name input. Returns whether validation succeeded and either the parsed and normalized
     // value or a message the bot can use to ask the user again.
     static validateName(input) {
@@ -133,6 +150,7 @@ class LuisBot {
             case question.name:
                 result = this.validateName(input);
                 if (result.success) {
+                    var usuario = this.getUsers();
                     profile.name = result.name;
                     await turnContext.sendActivity(`${profile.name} tiene 10 dias de vacaciones.`);
                     await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
@@ -187,50 +205,6 @@ class LuisBot {
         }
     }
 
-
-
-    // /**
-    //  * Every conversation turn calls this method.
-    //  * There are no dialogs used, since it's "single turn" processing, meaning a single request and
-    //  * response, with no stateful conversation.
-    //  * @param {TurnContext} turnContext A TurnContext instance, containing all the data needed for processing the conversation turn.
-    //  */
-    // async onTurn(turnContext) {
-    //     // By checking the incoming Activity type, the bot only calls LUIS in appropriate cases.
-    //     if (turnContext.activity.type === ActivityTypes.Message) {
-    //         // Perform a call to LUIS to retrieve results for the user's message.
-    //         const results = await this.luisRecognizer.recognize(turnContext);
-
-    //         // Since the LuisRecognizer was configured to include the raw results, get the `topScoringIntent` as specified by LUIS.
-    //         const topIntent = results.luisResult.topScoringIntent;
-
-    //         if (topIntent.intent == 'Telefonos') {
-    //             console.log(turnContext.activity.text);
-    //             console.log(turnContext.activity.from.name);
-    //             console.log(results.entities);//$instance.Nombres);
-
-    //             await turnContext.sendActivity(`El telefono de ${results.entities.Nombres} es 5518755714`);
-    //             //await turnContext.getActivity(turnContext);
-    //         } else {
-    //             // If the top scoring intent was "None" tell the user no valid intents were found and provide help.
-    //             await turnContext.sendActivity(`No LUIS intents were found.
-    //                                             \nThis sample is about identifying two user intents:
-    //                                             \n - 'Calendar.Add'
-    //                                             \n - 'Calendar.Find'
-    //                                             \nTry typing 'Add Event' or 'Show me tomorrow'.`);
-    //         }
-    //     } else if (turnContext.activity.type === ActivityTypes.ConversationUpdate &&
-    //         turnContext.activity.recipient.id !== turnContext.activity.membersAdded[0].id) {
-    //         // If the Activity is a ConversationUpdate, send a greeting message to the user.
-    //         await turnContext.sendActivity('Welcome to the NLP with LUIS sample! Send me a message and I will try to predict your intent.');
-    //     } else if (turnContext.activity.type !== ActivityTypes.ConversationUpdate) {
-    //         // Respond to all other Activity types.
-    //         await turnContext.sendActivity(`[${turnContext.activity.type}]-type activity detected.`);
-    //     }
-    // }
-
-
-
     async onTurn(turnContext) {
         // This bot listens for message activities.
         if (turnContext.activity.type === ActivityTypes.Message) {
@@ -242,10 +216,10 @@ class LuisBot {
             // Since the LuisRecognizer was configured to include the raw results, get the `topScoringIntent` as specified by LUIS.
             const topIntent = results.luisResult.topScoringIntent;
 
-            console.log(turnContext.activity.text);
-            console.log(turnContext.activity.from.name);
-            console.log(results.entities);//$instance.Nombres);
-            console.log(topIntent.intent);
+            // console.log(turnContext.activity.text);
+            // console.log(turnContext.activity.from.name);
+            // console.log(results.entities);//$instance.Nombres);
+            // console.log(topIntent.intent);
 
             if (topIntent.intent == 'Saldo Vacaciones' || vacaciones) {
                 vacaciones = true;
@@ -264,30 +238,6 @@ class LuisBot {
         }
     }
 
-
-    //Para acceder al servicio
-    getUsers() {
-        var Request = require("request");
-
-        Request.get("http://10.11.1.245:9090/login/users", (error, response, body) => {
-            if (error) {
-                return console.dir(error);
-            }
-            console.log("BODY: ");
-            var jsonContent = JSON.parse(body);
-            console.log(JSON.parse(body));
-
-            var prueba = JSON.parse(body);
-
-
-            console.log(prueba[0].username);
-
-
-
-            return JSON.parse(body);
-
-        });
-    }
 }
 
 module.exports.LuisBot = LuisBot;

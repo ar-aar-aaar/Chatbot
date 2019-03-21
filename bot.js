@@ -33,7 +33,7 @@ class EchoBot {
             // read from state.
             let count = await this.countProperty.get(turnContext);
             count = count === undefined ? 1 : ++count;
-            await turnContext.sendActivity(`${ count }: You said "${ turnContext.activity.text }"`);
+            await turnContext.sendActivity(`${ count }: Dijiste "${ turnContext.activity.text } y esto es un cambio"`);
             // increment and set turn counter.
             await this.countProperty.set(turnContext, count);
         } else {

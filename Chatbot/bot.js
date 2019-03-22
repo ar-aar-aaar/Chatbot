@@ -3,6 +3,7 @@
 
 const { ActivityTypes } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
+const Request = require("request");
 
 // The accessor names for the conversation flow and user profile state property accessors.
 const CONVERSATION_FLOW_PROPERTY = 'conversationFlowProperty';
@@ -17,6 +18,7 @@ const question = {
 }
 
 let vacaciones = false;
+let usuarios = '';
 
 /**
  * A simple bot that responds to utterances with answers from the Language Understanding (LUIS) service.
@@ -37,20 +39,16 @@ class LuisBot {
         this.userState = userState;
     }
 
-
-    getUsers() {
-        var Request = require("request");
-        console.log();
-
-        Request.get(`http://10.11.1.235:9090/contact/getContact?name=sergio`, (error, response, body) => {
-            if (error) {
-                return console.dir(error);
-            }
-            console.log("BODY: ");
-            console.log(JSON.parse(body));
-            return JSON.parse(body);
-
-        });
+    static getUsers() {
+        return new Promise((resolve, reject) => {
+            Request.get(`http://10.11.1.235:9090/contact/getContact?name=sergio`, (error, response, body) => {
+                if (error) {
+                    reject(error);
+                }
+                let user = JSON.parse(body);
+                resolve(user);
+            });
+        })
     }
 
 
@@ -148,52 +146,69 @@ class LuisBot {
             // If we last asked for their name, record their response, confirm that we got it.
             // Ask them for their age and update the conversation flag.
             case question.name:
+                var usuarios = await this.getUsers();
+                console.log(usuarios);
+                var numeroDeUuarios = usuarios.length;
+                console.log(usuarios[0]);
+                
+                console.log(numeroDeUuarios);
+                
+                if (numeroDeUuarios > 0) {
+                    if (numeroDeUuarios < 2) {
+                        await turnContext.sendActivity(`${usuarios[0].name} tiene 10 dias de vacaciones.`);
+                        await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                        vacaciones = false;
+                        flow.lastQuestionAsked = question.none;
+                    } else {
+                        await turnContext.sendActivity('Hay muchos usuarios con ese nombre, a cual te refieres?');
+                        usuarios.forEach((usuario) => {
+                            turnContext.sendActivity(`${usuario.name}`);
+                        })
+                        vacaciones = true;
+                        flow.lastQuestionAsked = question.name;
+                    }
+                    break;
+                } else {
+                    // If we couldn't interpret their input, ask them for it again.
+                    // Don't update the conversation flag, so that we repeat this step.
+                    await turnContext.sendActivity(
+                        result.message || "No hay usuarios con ese nombre, lo lamento");
+                    break;
+                }
+        }
+    }
+
+    // Manages the conversation flow for filling out the user's profile.
+    static async contactPath(flow, profile, turnContext) {
+        const input = turnContext.activity.text;
+        let result;
+        switch (flow.lastQuestionAsked) {
+            // If we're just starting off, we haven't asked the user for any information yet.
+            // Ask the user for their name and update the conversation flag.
+            case question.none:
                 result = this.validateName(input);
                 if (result.success) {
-                    var usuario = this.getUsers();
+                    name = result.name;
+                    lastname = result.lastname;
+                    await turnContext.sendActivity(`Nombre: ${name} ${lastname}.`);
+                    await turnContext.sendActivity(`Correo: ${correo}`);
+                    await turnContext.sendActivity(`Telefono: ${telefono}`);
+                }
+                await turnContext.sendActivity("Claro, cual es tu nombre?");
+                flow.lastQuestionAsked = question.name;
+                break;
+
+            // If we last asked for their name, record their response, confirm that we got it.
+            // Ask them for their age and update the conversation flag.
+            case question.name:
+                result = this.validateName(input);
+                if (result.success) {
+                    this.getUsers();
                     profile.name = result.name;
                     await turnContext.sendActivity(`${profile.name} tiene 10 dias de vacaciones.`);
                     await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
                     vacaciones = false;
                     flow.lastQuestionAsked = question.none;
-                    break;
-                } else {
-                    // If we couldn't interpret their input, ask them for it again.
-                    // Don't update the conversation flag, so that we repeat this step.
-                    await turnContext.sendActivity(
-                        result.message || "I'm sorry, I didn't understand that.");
-                    break;
-                }
-
-            // If we last asked for their age, record their response, confirm that we got it.
-            // Ask them for their date preference and update the conversation flag.
-            case question.age:
-                result = this.validateAge(input);
-                if (result.success) {
-                    profile.age = result.age;
-                    await turnContext.sendActivity(`I have your age as ${profile.age}.`);
-                    await turnContext.sendActivity('When is your flight?');
-                    flow.lastQuestionAsked = question.date;
-                    break;
-                } else {
-                    // If we couldn't interpret their input, ask them for it again.
-                    // Don't update the conversation flag, so that we repeat this step.
-                    await turnContext.sendActivity(
-                        result.message || "I'm sorry, I didn't understand that.");
-                    break;
-                }
-
-            // If we last asked for a date, record their response, confirm that we got it,
-            // let them know the process is complete, and update the conversation flag.
-            case question.date:
-                result = this.validateDate(input);
-                if (result.success) {
-                    profile.date = result.date;
-                    await turnContext.sendActivity(`Your cab ride to the airport is scheduled for ${profile.date}.`);
-                    await turnContext.sendActivity(`Thanks for completing the booking ${profile.name}.`);
-                    await turnContext.sendActivity('Type anything to run the bot again.');
-                    flow.lastQuestionAsked = question.none;
-                    profile = {};
                     break;
                 } else {
                     // If we couldn't interpret their input, ask them for it again.
@@ -221,10 +236,11 @@ class LuisBot {
             // console.log(results.entities);//$instance.Nombres);
             // console.log(topIntent.intent);
 
+            const flow = await this.conversationFlow.get(turnContext, { lastQuestionAsked: question.none });
+            const profile = await this.userProfile.get(turnContext, {});
+
             if (topIntent.intent == 'Saldo Vacaciones' || vacaciones) {
                 vacaciones = true;
-                const flow = await this.conversationFlow.get(turnContext, { lastQuestionAsked: question.none });
-                const profile = await this.userProfile.get(turnContext, {});
 
                 await LuisBot.fillOutUserProfile(flow, profile, turnContext);
 

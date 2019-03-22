@@ -4,6 +4,7 @@
 const { ActivityTypes } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
 const Request = require("request");
+const ENDPOINT = 'http://10.11.1.235:9090'
 
 // The accessor names for the conversation flow and user profile state property accessors.
 const CONVERSATION_FLOW_PROPERTY = 'conversationFlowProperty';
@@ -16,9 +17,6 @@ const question = {
     date: "date",
     none: "none"
 }
-
-let vacaciones = false;
-let usuarios = '';
 
 /**
  * A simple bot that responds to utterances with answers from the Language Understanding (LUIS) service.
@@ -39,9 +37,33 @@ class LuisBot {
         this.userState = userState;
     }
 
-    static getUsers() {
+    static getUsers(name, lastname) {
+        var ACCES_POINT = '';
+        var URL = '';
         return new Promise((resolve, reject) => {
-            Request.get(`http://10.11.1.235:9090/contact/getContact?name=sergio`, (error, response, body) => {
+            if (lastname) {
+                lastname = `&&lastName=${lastname}`;
+                ACCES_POINT = '/contact/getContactNL'
+            } else {
+                lastname = '';
+                ACCES_POINT = '/contact/getContact'
+            }
+            URL = `${ENDPOINT}${ACCES_POINT}?name=${name}${lastname}`
+            console.log(URL);
+            Request.get(URL, (error, response, body) => {
+                if (error) {
+                    reject(error);
+                }
+                let user = JSON.parse(body);
+                resolve(user);
+            });
+        })
+    }
+    static getDaysOff(id) {
+        var URL = '';
+        return new Promise((resolve, reject) => {
+            URL = `http://10.11.1.13:7012/chatbot/chatbotHoliday?id=${id}`
+            Request.get(URL, (error, response, body) => {
                 if (error) {
                     reject(error);
                 }
@@ -132,47 +154,54 @@ class LuisBot {
 
 
     // Manages the conversation flow for filling out the user's profile.
-    static async fillOutUserProfile(flow, profile, turnContext) {
-        const input = turnContext.activity.text;
-        let result;
+    static async fillOutUserProfile(flow, results, turnContext) {
         switch (flow.lastQuestionAsked) {
-            // If we're just starting off, we haven't asked the user for any information yet.
-            // Ask the user for their name and update the conversation flag.
             case question.none:
                 await turnContext.sendActivity("Claro, cual es tu nombre?");
                 flow.lastQuestionAsked = question.name;
                 break;
-
-            // If we last asked for their name, record their response, confirm that we got it.
-            // Ask them for their age and update the conversation flag.
             case question.name:
-                var usuarios = await this.getUsers();
-                console.log(usuarios);
+                var nombre = '';
+                var apellido = '';
+
+                results.entities.Name.forEach(name => { nombre = `${nombre} ${name}` });
+                try {
+                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}` })
+                } catch (error) {
+                    console.log(error);
+                }
+
+                console.log("-------------------------------");
+                console.log(turnContext.activity.text);
+                console.log(turnContext.activity.from.name);
+                console.log(results.entities);
+                console.log(nombre.trim());
+                console.log(apellido.trim());
+                console.log("-------------------------------");
+
+                var usuarios = await this.getUsers(nombre.trim(), apellido.trim());
                 var numeroDeUuarios = usuarios.length;
-                console.log(usuarios[0]);
-                
-                console.log(numeroDeUuarios);
-                
+
                 if (numeroDeUuarios > 0) {
                     if (numeroDeUuarios < 2) {
-                        await turnContext.sendActivity(`${usuarios[0].name} tiene 10 dias de vacaciones.`);
+                        var daysOff = await this.getDaysOff(usuarios[0].id_myaxity);
+                        await turnContext.sendActivity(`${usuarios[0].name} ${usuarios[0].lastName} tiene ${daysOff.totalDays} dias de vacaciones.`);
                         await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
-                        vacaciones = false;
                         flow.lastQuestionAsked = question.none;
                     } else {
                         await turnContext.sendActivity('Hay muchos usuarios con ese nombre, a cual te refieres?');
                         usuarios.forEach((usuario) => {
-                            turnContext.sendActivity(`${usuario.name}`);
+                            turnContext.sendActivity(`${usuario.name} ${usuario.lastName}`);
                         })
-                        vacaciones = true;
                         flow.lastQuestionAsked = question.name;
                     }
                     break;
                 } else {
                     // If we couldn't interpret their input, ask them for it again.
                     // Don't update the conversation flag, so that we repeat this step.
-                    await turnContext.sendActivity(
-                        result.message || "No hay usuarios con ese nombre, lo lamento");
+                    await turnContext.sendActivity("No hay usuarios con ese nombre, lo lamento");
+                    await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                    flow.lastQuestionAsked = question.none;
                     break;
                 }
         }
@@ -207,7 +236,6 @@ class LuisBot {
                     profile.name = result.name;
                     await turnContext.sendActivity(`${profile.name} tiene 10 dias de vacaciones.`);
                     await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
-                    vacaciones = false;
                     flow.lastQuestionAsked = question.none;
                     break;
                 } else {
@@ -231,18 +259,30 @@ class LuisBot {
             // Since the LuisRecognizer was configured to include the raw results, get the `topScoringIntent` as specified by LUIS.
             const topIntent = results.luisResult.topScoringIntent;
 
-            // console.log(turnContext.activity.text);
-            // console.log(turnContext.activity.from.name);
-            // console.log(results.entities);//$instance.Nombres);
-            // console.log(topIntent.intent);
-
             const flow = await this.conversationFlow.get(turnContext, { lastQuestionAsked: question.none });
             const profile = await this.userProfile.get(turnContext, {});
 
-            if (topIntent.intent == 'Saldo Vacaciones' || vacaciones) {
-                vacaciones = true;
+            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            console.log(turnContext.activity.text);
+            console.log(turnContext.activity.from.name);
+            console.log(results.entities);
+            console.log(topIntent.intent);
+            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
-                await LuisBot.fillOutUserProfile(flow, profile, turnContext);
+            if (topIntent.intent == 'Saldo Vacaciones' || topIntent.intent == "Nombre") {
+
+                await LuisBot.fillOutUserProfile(flow, results, turnContext);
+
+
+                // Update state and save changes.
+                await this.conversationFlow.set(turnContext, flow);
+                await this.conversationState.saveChanges(turnContext);
+
+                await this.userProfile.set(turnContext, profile);
+                await this.userState.saveChanges(turnContext);
+            } else if (topIntent.intent == 'contacto') {
+
+                await LuisBot.contactPath(flow, profile, turnContext);
 
                 // Update state and save changes.
                 await this.conversationFlow.set(turnContext, flow);

@@ -13,6 +13,7 @@ import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,29 +24,35 @@ public class becaServiceImpl implements IbecaService {
     @Autowired
     IContactDAO contactDAO;
 
-    @Autowired
-    ModelMapper modelMapper;
 
 
     @Override
     public List<ContactDO> getContact(String name) {
         name = name.toLowerCase();
-        LOG.info("---->>>name: " + name);
-        return this.contactDAO.findByNameContaining(name);
-
+        LOG.info("->>>nombre service ->> " + name);
+        return this.contactDAO.getByNameWithQuery(name);
         //return this.contactDAO.findByNameLike(name);
     }
 
     @Override
     public List<ContactDO> getContactNA(String name, String lastName) {
-        return this.contactDAO.findByNameAndLastName(name, lastName);
+        name = name.toLowerCase();
+        lastName = lastName.toLowerCase();
+        LOG.info("->>>nombre service ->> " + name);
+        LOG.info("-->>>apellido service -->> " + lastName);
+        return this.contactDAO.getByNameAndLastNameWithQuery(name, lastName);
+        //return this.contactDAO.getByNameWithQuery(name);
     }
 
-    //@Override
-    //public ContactDO getContactQ(String name) {
-    //    return this.contactDAO.findByNameQ(name);
-   // }
-
+    /*@Override
+    public List<ContactDO> getContactQ(String name, String lastName) {
+        name = name.toLowerCase();
+        lastName = lastName.toLowerCase();
+        LOG.info("->>>nombre service ->> " + name);
+        LOG.info("-->>>apellido service -->> " + lastName);
+        return this.contactDAO.getByNameAndLastNameWithQuery(name, lastName);
+        //return this.contactDAO.getByNameWithQuery(name);
+    }*/
 
 }
 

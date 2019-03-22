@@ -8,4 +8,7 @@ public interface IbecaFacade {
 
     List<ContactTO> getContactF(String name);
     List<ContactTO> getContactBYNameLastname(String name, String lastName);
+
+
+    //List<ContactTO> getContactNameAndLastNameQ(String name, String lastName);
 }

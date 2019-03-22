@@ -41,4 +41,13 @@ public class becaFacade implements IbecaFacade {
         List<ContactTO> contactTO = this.modelMapper.map(contactDO, contactTOType);
         return contactTO;
     }
+
+    /*@Override
+    public List<ContactTO> getContactNameAndLastNameQ(String name, String lastName) {
+        List<ContactDO> contactDOS = this.becaService.getContactQ(name, lastName);
+        Type contactTOType = new TypeToken<List<ContactTO>>() {}.getType();
+        List<ContactTO> contactDOS1 = this.modelMapper.map(contactDOS, contactTOType);
+        return contactDOS1;
+    }*/
+
 }

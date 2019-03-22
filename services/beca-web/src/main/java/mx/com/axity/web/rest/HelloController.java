@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", allowCredentials = "true")
@@ -28,12 +29,15 @@ public class HelloController {
 
     @Autowired
     IbecaFacade IbecaFacade;
-
     @RequestMapping(value = "/getContact", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<List<ContactTO>> getContact(@RequestParam(value = "name")String name) {
         LOG.info(name);
-        List<ContactTO> contactTO = this.IbecaFacade.getContactF(name);
-        return new ResponseEntity<>(contactTO,HttpStatus.OK);
+        if(!name.isEmpty()){
+            List<ContactTO> contactTO = this.IbecaFacade.getContactF(name);
+            return new ResponseEntity<>(contactTO,HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ArrayList<>(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @RequestMapping(value = "/getContactNL", method = RequestMethod.GET, produces = "application/json")
@@ -42,8 +46,11 @@ public class HelloController {
             @RequestParam(value = "lastName")String lastName){
         LOG.info("--->>>> " + name);
         LOG.info("--->>>> " + lastName);
-        List<ContactTO> contactTO = this.IbecaFacade.getContactBYNameLastname(name, lastName);
-        return new ResponseEntity<>(contactTO,HttpStatus.OK);
+        if(!name.isEmpty() && !lastName.isEmpty()){
+            List<ContactTO> contactTO = this.IbecaFacade.getContactBYNameLastname(name, lastName);
+            return new ResponseEntity<>(contactTO,HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(new ArrayList<>(),HttpStatus.NOT_FOUND);
+        }
     }
-
 }

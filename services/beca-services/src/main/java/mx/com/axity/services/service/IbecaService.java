@@ -9,5 +9,6 @@ public interface IbecaService {
 
    List<ContactDO> getContact(String name);
    List<ContactDO> getContactNA(String name, String lastName);
-   //ContactDO getContactQ(String name);
+
+   //List<ContactDO> getContactQ(String name, String lastName);
 }

@@ -9,12 +9,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface IContactDAO extends CrudRepository <ContactDO, Long> {
-    List<ContactDO> findByName(String name);
-    List<ContactDO> findByNameAndLastName(String name, String lastName);
+    List<ContactDO> findByNameContainingAndLastNameContaining(String name, String lastName);
     List<ContactDO> findByNameContaining(String name);
-    List<ContactDO> findByNameLike(String name);
 
-    //@Query("SELECT u FROM contacs u WHERE LOWER(u.ds_name) = ?1")
-    //ContactDO findByNameQ(String name);
+    @Query("from ContactDO c where lower(c.name) like concat ('%',:name,'%')")
+    List<ContactDO> getByNameWithQuery(@Param("name") String name);
 
+    @Query("from ContactDO c where lower(c.name) like concat ('%',:name,'%') and lower(c.lastName) like concat ('%',:lastName,'%')")
+    List<ContactDO> getByNameAndLastNameWithQuery(@Param("name")  String name, @Param("lastName") String lastName);
+
+    //@Query("from ContactDO c where lower(c.name) like :name and lower(c.lastName)like :lastName")
+    //List<ContactDO> getByNameAndLastNameWithQuery(@Param("name") String name, @Param("lastName") String lastName);
 }

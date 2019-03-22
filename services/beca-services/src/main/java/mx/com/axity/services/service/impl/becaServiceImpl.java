@@ -29,14 +29,22 @@ public class becaServiceImpl implements IbecaService {
 
     @Override
     public List<ContactDO> getContact(String name) {
+        name = name.toLowerCase();
+        LOG.info("---->>>name: " + name);
         return this.contactDAO.findByNameContaining(name);
+
         //return this.contactDAO.findByNameLike(name);
     }
 
     @Override
-    public ContactDO getContactNA(String name, String lastName) {
+    public List<ContactDO> getContactNA(String name, String lastName) {
         return this.contactDAO.findByNameAndLastName(name, lastName);
     }
+
+    //@Override
+    //public ContactDO getContactQ(String name) {
+    //    return this.contactDAO.findByNameQ(name);
+   // }
 
 
 }

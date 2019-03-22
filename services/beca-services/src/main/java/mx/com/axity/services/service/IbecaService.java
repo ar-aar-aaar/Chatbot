@@ -8,5 +8,6 @@ import java.util.List;
 public interface IbecaService {
 
    List<ContactDO> getContact(String name);
-   ContactDO getContactNA(String name, String lastName);
+   List<ContactDO> getContactNA(String name, String lastName);
+   //ContactDO getContactQ(String name);
 }

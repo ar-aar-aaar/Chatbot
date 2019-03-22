@@ -35,8 +35,10 @@ public class becaFacade implements IbecaFacade {
     }
 
     @Override
-    public ContactTO getContactBYNameLastname(String name, String lastName) {
-        //ContactDO contactDO = this.becaService.getContactNA()
-        return null;
+    public List<ContactTO> getContactBYNameLastname(String name, String lastName) {
+        List<ContactDO> contactDO = this.becaService.getContactNA(name, lastName);
+        Type contactTOType = new TypeToken<List<ContactTO>>() {}.getType();
+        List<ContactTO> contactTO = this.modelMapper.map(contactDO, contactTOType);
+        return contactTO;
     }
 }

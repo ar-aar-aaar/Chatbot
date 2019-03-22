@@ -10,8 +10,11 @@ import java.util.List;
 
 public interface IContactDAO extends CrudRepository <ContactDO, Long> {
     List<ContactDO> findByName(String name);
-    ContactDO findByNameAndLastName(String name, String lastName);
+    List<ContactDO> findByNameAndLastName(String name, String lastName);
     List<ContactDO> findByNameContaining(String name);
     List<ContactDO> findByNameLike(String name);
+
+    //@Query("SELECT u FROM contacs u WHERE LOWER(u.ds_name) = ?1")
+    //ContactDO findByNameQ(String name);
 
 }

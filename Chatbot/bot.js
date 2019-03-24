@@ -18,6 +18,21 @@ const question = {
     none: "none"
 }
 
+const meses = {
+    "01": 31,
+    "02": 28,
+    "03": 31,
+    "04": 30,
+    "05": 31,
+    "06": 30,
+    "07": 31,
+    "08": 31,
+    "09": 30,
+    "10": 31,
+    "11": 30,
+    "12": 31
+}
+
 let vacaciones = false;
 let contacto = false;
 
@@ -221,6 +236,22 @@ class LuisBot {
 
                 await this.userProfile.set(turnContext, profile);
                 await this.userState.saveChanges(turnContext);
+            } else if (topIntent.intent == 'Solicitar vacaciones'){
+                var fechaActual = new Date();
+                var mesActual = fechaActual.getMonth() + 1;
+                var anioActual = fechaActual.getFullYear();
+                var mesDeSolicitud = results.entities.meses;
+                var anioDeSolicitud = results.entities.anio;
+                var diaDeSolicitud = results.entities.number;
+                if(!anioDeSolicitud){
+                    anioDeSolicitud = anioActual;
+                    if(mesActual > mesDeSolicitud){
+                        anioDeSolicitud = anioActual +1;
+                    }
+                }
+                var fechaDeSolicitud = new Date(`${mesDeSolicitud}-${diaDeSolicitud}-${anioDeSolicitud}`);
+                console.log(fechaDeSolicitud);
+                console.log(meses[mesDeSolicitud]);
             }
         }
     }

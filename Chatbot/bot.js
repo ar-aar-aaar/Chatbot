@@ -8,7 +8,20 @@ const question = {
     name: "name",
     vacaciones: "vacaciones",
     none: "none"
-}
+};
+
+const saludos = {
+    0: "Buenos dias",
+    1: "Que tal, como estas :)",
+    2: "Mucho gusto c:",
+    3: "Hola",
+    4: "Hola, te puedo ayudar en algo?",
+    5: "Que onda",
+    6: "Que hongo",
+    7: "Como estas",
+    8: "Que paso",
+    9: "Mucho gusto"
+};
 // The accessor names for the conversation flow and user profile state property accessors.
 const CONVERSATION_FLOW_PROPERTY = 'conversationFlowProperty';
 const USER_PROFILE_PROPERTY = 'userProfileProperty';
@@ -18,7 +31,7 @@ let contacto = false;
 let solicitudVacaciones = false;
 let datosSolicitante = {
     usuarioSolicitante: '',
-    diasDisponibles:    0,
+    diasDisponibles: 0,
     fechaDeSolicitud: new Date()
 };
 
@@ -42,19 +55,29 @@ class LuisBot {
             const flow = await this.conversationFlow.get(turnContext, { lastQuestionAsked: question.none });
             const profile = await this.userProfile.get(turnContext, {});
 
-            if (topIntent.intent == 'Saldo Vacaciones' || (topIntent.intent == "Nombre" && vacaciones)) {
+            if (topIntent.intent == 'exit') {
+                await turnContext.sendActivity("Puedo ayudarte en algo mas?");
+                flow.lastQuestionAsked = question.none;
+                vacaciones = false;
+                contacto = false;
+                solicitudVacaciones = false;
+            } else if (topIntent.intent == 'Saldo Vacaciones' || (topIntent.intent == "Nombre" && vacaciones)
+                && topIntent.score > 0.90) {
+                console.log(topIntent);
                 vacaciones = await Paths.pathSaldoVacaciones(flow, results, turnContext);
                 await this.conversationFlow.set(turnContext, flow);
                 await this.conversationState.saveChanges(turnContext);
 
                 await this.userProfile.set(turnContext, profile);
                 await this.userState.saveChanges(turnContext);
-            } else if (topIntent.intent == 'Contacto colaborador' || (topIntent.intent == "Nombre" && contacto)) {
+            } else if (topIntent.intent == 'Contacto colaborador' || (topIntent.intent == "Nombre" && contacto)
+                && topIntent.score > 0.90) {
                 contacto = await ContactPath.contactPath(results, turnContext);
                 console.log(results.entities);
             } else if (topIntent.intent == 'Solicitar vacaciones'
                 || (topIntent.intent == 'Nombre' && solicitudVacaciones)
-                || (topIntent.intent == 'numeros' && solicitudVacaciones)) {
+                || (topIntent.intent == 'numeros' && solicitudVacaciones)
+                && topIntent.score > 0.90) {
 
                 solicitudVacaciones = await SolicitarVacacionesPath.pathSolicitudVacaciones(flow, results, turnContext, datosSolicitante);
 
@@ -64,8 +87,11 @@ class LuisBot {
                 await this.userProfile.set(turnContext, profile);
                 await this.userState.saveChanges(turnContext);
 
-            }
-            else {
+            } else if("Saludos"){
+                var numeroDeSaludo = Math.floor(Math.random() * 10); 
+                console.log(numeroDeSaludo);
+                await turnContext.sendActivity(saludos[numeroDeSaludo]);
+            } else {
                 await turnContext.sendActivity(`No te entiendi, intenta con otra pregunta`);
             }
         }

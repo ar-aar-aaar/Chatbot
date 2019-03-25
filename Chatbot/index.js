@@ -3,7 +3,7 @@
 
 const path = require('path');
 const restify = require('restify');
-const { BotFrameworkAdapter } = require('botbuilder');
+const { BotFrameworkAdapter , MemoryStorage, ConversationState, UserState} = require('botbuilder');
 const { BotConfiguration } = require('botframework-config');
 const { LuisBot } = require('./bot');
 
@@ -11,6 +11,12 @@ const { LuisBot } = require('./bot');
 // Note: Ensure you have a .env file and include botFilePath and botFileSecret.
 const ENV_FILE = path.join(__dirname, '.env');
 require('dotenv').config({ path: ENV_FILE });
+
+// Create conversation and user state with in-memory storage provider.
+const memoryStorage = new MemoryStorage();
+const conversationState = new ConversationState(memoryStorage);
+const userState = new UserState(memoryStorage);
+
 
 // .bot file path.
 const BOT_FILE = path.join(__dirname, (process.env.botFilePath || ''));
@@ -33,7 +39,7 @@ const DEV_ENVIRONMENT = 'development';
 const BOT_CONFIGURATION = (process.env.NODE_ENV || DEV_ENVIRONMENT);
 
 // Language Understanding (LUIS) service name as defined in the .bot file.
-const LUIS_CONFIGURATION = 'AxityBot';
+const LUIS_CONFIGURATION = 'Chatbot';
 
 if (!LUIS_CONFIGURATION) {
     console.error('Make sure to update the index.js file with a LUIS_CONFIGURATION name that matches your .bot file.');
@@ -68,14 +74,22 @@ const adapter = new BotFrameworkAdapter({
 
 // Catch-all for errors.
 adapter.onTurnError = async (context, error) => {
-    console.error(`\n [onTurnError]: ${ error }`);
-    await context.sendActivity(`Oops. Something went wrong!`);
+    // This check writes out errors to console log .vs. app insights.
+    console.error(`\n [onTurnError]: ${error}`);
+    // Send a message to the user
+    context.sendActivity(`Oops. Something went wrong!`);
+    // Clear out state
+    await conversationState.load(context);
+    await conversationState.clear(context);
+    // Save state changes.
+    await conversationState.saveChanges(context);
 };
 
 // Create the LuisBot.
 let bot;
 try {
-    bot = new LuisBot(luisApplication, luisPredictionOptions);
+    bot = new LuisBot(luisApplication, luisPredictionOptions,
+        conversationState, userState);
 } catch (err) {
     console.error(`[botInitializationError]: ${ err }`);
     process.exit();

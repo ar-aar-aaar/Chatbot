@@ -4,7 +4,7 @@
 const { ActivityTypes } = require('botbuilder');
 const { LuisRecognizer } = require('botbuilder-ai');
 const Request = require("request");
-const ENDPOINT = 'http://10.11.1.235:9090'
+const ENDPOINT = 'http://10.11.1.191:9090'
 
 // The accessor names for the conversation flow and user profile state property accessors.
 const CONVERSATION_FLOW_PROPERTY = 'conversationFlowProperty';
@@ -13,28 +13,26 @@ const USER_PROFILE_PROPERTY = 'userProfileProperty';
 // Identifies the last question asked.
 const question = {
     name: "name",
-    age: "age",
-    date: "date",
+    vacaciones: "vacaciones",
     none: "none"
 }
 
-const meses = {
-    "01": 31,
-    "02": 28,
-    "03": 31,
-    "04": 30,
-    "05": 31,
-    "06": 30,
-    "07": 31,
-    "08": 31,
-    "09": 30,
-    "10": 31,
-    "11": 30,
-    "12": 31
+const DIAS = {
+    DOMINGO: 0,
+    LUNES: 1,
+    MARTES: 2,
+    MIERCOLES: 3,
+    JUEVES: 4,
+    VIERNES: 5,
+    SABADO: 6
 }
 
 let vacaciones = false;
 let contacto = false;
+let solicitudVacaciones = false;
+let usuarioSolicitante;
+let diasDisponibles;
+let fechaDeSolicitud;
 
 /**
  * A simple bot that responds to utterances with answers from the Language Understanding (LUIS) service.
@@ -53,6 +51,34 @@ class LuisBot {
         // The state management objects for the conversation and user.
         this.conversationState = conversationState;
         this.userState = userState;
+    }
+
+    static fechaDeTerminoDeVacaciones(fechaVacaciones, numeroDeDias) {
+        console.log(fechaVacaciones);
+        var diaTermino = fechaVacaciones.getDate();
+        var mesTermino = fechaVacaciones.getMonth() + 1;
+        var anioTermino = fechaVacaciones.getFullYear();
+        var fechaDeTerminoDeVacaciones = new Date(`${mesTermino}-${diaTermino}-${anioTermino}`);
+        var diaCiclo;
+
+
+        for (let i = 0; i < numeroDeDias; i++) {
+            diaCiclo = fechaDeTerminoDeVacaciones.getDay();
+            if (diaCiclo != DIAS.DOMINGO && diaCiclo != DIAS.SABADO) {
+                fechaDeTerminoDeVacaciones.setDate(fechaDeTerminoDeVacaciones.getDate() + 1);
+            } else {
+                fechaDeTerminoDeVacaciones.setDate(fechaDeTerminoDeVacaciones.getDate() + 1);
+                i--;
+            }
+        }
+        console.log(fechaDeTerminoDeVacaciones);
+        diaTermino = fechaDeTerminoDeVacaciones.getDate();
+        mesTermino = fechaDeTerminoDeVacaciones.getMonth();
+        anioTermino = fechaDeTerminoDeVacaciones.getFullYear();
+        var mensajeConfirmacion = `Se envio la solicitud de vacaciones del ${fechaVacaciones.getDate()}/${fechaVacaciones.getMonth() + 1}/${fechaVacaciones.getFullYear()} al ${diaTermino}/${mesTermino + 1}/${anioTermino}`;
+        console.log(mensajeConfirmacion);
+
+        return mensajeConfirmacion;
     }
 
     static getUsers(name, lastname) {
@@ -81,6 +107,7 @@ class LuisBot {
         var URL = '';
         return new Promise((resolve, reject) => {
             URL = `http://10.11.1.13:7012/chatbot/chatbotHoliday?id=${id}`
+            console.log(URL);
             Request.get(URL, (error, response, body) => {
                 if (error) {
                     reject(error);
@@ -107,14 +134,6 @@ class LuisBot {
                 } catch (error) {
                     console.log(error);
                 }
-
-                console.log("-------------------------------");
-                console.log(turnContext.activity.text);
-                console.log(turnContext.activity.from.name);
-                console.log(results.entities);
-                console.log(nombre.trim());
-                console.log(apellido.trim());
-                console.log("-------------------------------");
 
                 var usuarios = await this.getUsers(nombre.trim(), apellido.trim());
                 var numeroDeUuarios = usuarios.length;
@@ -191,6 +210,97 @@ class LuisBot {
         }
     }
 
+    static async pathSolicitudVacaciones(flow, results, turnContext) {
+        switch (flow.lastQuestionAsked) {
+            case question.none:
+
+                var fechaActual = new Date();
+                var mesActual = fechaActual.getMonth() + 1;
+                var anioActual = fechaActual.getFullYear();
+                if (!results.entities.meses){
+                    await turnContext.sendActivity("Claro, cuando quieres tus vacaciones?");   
+                    break;                 
+                }
+                var mesDeSolicitud = results.entities.meses;
+                var anioDeSolicitud = results.entities.anio;
+                var diaDeSolicitud = results.entities.number;
+                if (!anioDeSolicitud) {
+                    anioDeSolicitud = anioActual;
+                    if (mesActual > mesDeSolicitud) {
+                        anioDeSolicitud = anioActual + 1;
+                    }
+                }
+                fechaDeSolicitud = new Date(`${mesDeSolicitud}-${diaDeSolicitud}-${anioDeSolicitud}`);
+                console.log(fechaDeSolicitud);
+                console.log(fechaActual);
+                
+                await turnContext.sendActivity("Claro, cual es tu nombre?");
+                flow.lastQuestionAsked = question.name;
+                break;
+            case question.name:
+                var nombre = '';
+                var apellido = '';
+                try {
+                    results.entities.Name.forEach(name => { nombre = `${nombre} ${name}` });
+                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}` })
+                } catch (error) {
+                    console.log(error);
+                }
+                console.log("--------antes del error-----------");
+                usuarioSolicitante = await this.getUsers(nombre.trim(), apellido.trim());
+                console.log(usuarioSolicitante);
+                var numeroDeUuarios = usuarioSolicitante.length;
+
+                if (numeroDeUuarios > 0) {
+                    if (numeroDeUuarios < 2) {
+                        diasDisponibles = await this.getDaysOff(usuarioSolicitante[0].id_myaxity);
+                        if (diasDisponibles.totalDays) {
+                            await turnContext.sendActivity(`tienes ${diasDisponibles.totalDays} dias de vacaciones, cuantos deseas tomar?.`);
+                            flow.lastQuestionAsked = question.vacaciones;
+                        } else {
+                            await turnContext.sendActivity('No tienes dias de vacaciones disponibles, lo siento :(');
+                            await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                            flow.lastQuestionAsked = question.none;
+                        }
+
+                    } else {
+                        await turnContext.sendActivity('Hay muchos usuarios con ese nombre, a cual te refieres?');
+                        usuarioSolicitante.forEach((usuario) => {
+                            turnContext.sendActivity(`${usuario.name} ${usuario.lastName}`);
+                        })
+                        flow.lastQuestionAsked = question.name;
+                    }
+                    break;
+                } else {
+                    // If we couldn't interpret their input, ask them for it again.
+                    // Don't update the conversation flag, so that we repeat this step.
+                    await turnContext.sendActivity("No hay usuarios con ese nombre, lo lamento");
+                    await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                    solicitudVacaciones = false;
+                    flow.lastQuestionAsked = question.none;
+                    break;
+                }
+            case question.vacaciones:
+                var diasSolicitados = results.entities.number;
+                if (diasDisponibles.totalDays >= diasSolicitados) {
+                    console.log("--------------antes----------------");
+                    console.log(fechaDeSolicitud);                    
+                    await turnContext.sendActivity(this.fechaDeTerminoDeVacaciones(fechaDeSolicitud, diasSolicitados));
+                    console.log("--------------despues----------------");
+                    await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                    solicitudVacaciones = false;
+                    flow.lastQuestionAsked = question.none;
+                } else {
+                    await turnContext.sendActivity("No tienes dias de vacaciones suficientes, lo siento");
+                    await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
+                    solicitudVacaciones = false;
+                    flow.lastQuestionAsked = question.none;
+                }
+                console.log(results.entities)
+
+        }
+    }
+
     async onTurn(turnContext) {
         // This bot listens for message activities.
         if (turnContext.activity.type === ActivityTypes.Message) {
@@ -236,22 +346,23 @@ class LuisBot {
 
                 await this.userProfile.set(turnContext, profile);
                 await this.userState.saveChanges(turnContext);
-            } else if (topIntent.intent == 'Solicitar vacaciones'){
-                var fechaActual = new Date();
-                var mesActual = fechaActual.getMonth() + 1;
-                var anioActual = fechaActual.getFullYear();
-                var mesDeSolicitud = results.entities.meses;
-                var anioDeSolicitud = results.entities.anio;
-                var diaDeSolicitud = results.entities.number;
-                if(!anioDeSolicitud){
-                    anioDeSolicitud = anioActual;
-                    if(mesActual > mesDeSolicitud){
-                        anioDeSolicitud = anioActual +1;
-                    }
-                }
-                var fechaDeSolicitud = new Date(`${mesDeSolicitud}-${diaDeSolicitud}-${anioDeSolicitud}`);
-                console.log(fechaDeSolicitud);
-                console.log(meses[mesDeSolicitud]);
+            } else if (topIntent.intent == 'Solicitar vacaciones'
+                || (topIntent.intent == 'Nombre' && solicitudVacaciones)
+                || (topIntent.intent == 'numeros' && solicitudVacaciones)) {
+
+                solicitudVacaciones = true;
+                await LuisBot.pathSolicitudVacaciones(flow, results, turnContext);
+
+                // Update state and save changes.
+                await this.conversationFlow.set(turnContext, flow);
+                await this.conversationState.saveChanges(turnContext);
+
+                await this.userProfile.set(turnContext, profile);
+                await this.userState.saveChanges(turnContext);
+
+            }
+            else{
+                await turnContext.sendActivity(`No te entiendi, intenta con otra pregunta`);
             }
         }
     }

@@ -5,8 +5,8 @@ class ContactPath {
         var nombre = '';
         var apellido = '';
         try {
-            results.entities.Name.forEach(name => { nombre = `${nombre} ${name}` });
-            results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}` })
+            results.entities.Name.forEach(name => { nombre = `${nombre} ${name}`.trim() });
+            results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}`.trim() })
         } catch (error) {
             console.log(error);
         }

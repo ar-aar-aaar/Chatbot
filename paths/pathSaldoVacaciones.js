@@ -21,8 +21,9 @@ class Paths {
                 var nombre = '';
                 var apellido = '';
                 try {
-                    results.entities.Name.forEach(name => { nombre = `${nombre} ${name}` });
-                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}` })
+                    console.log(results.entities);
+                    results.entities.Name.forEach(name => { nombre = `${nombre} ${name}`.trim() });
+                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}`.trim() })
                 } catch (error) {
                     console.log(error);
                 }
@@ -36,6 +37,7 @@ class Paths {
                         var daysOff = await userService.getDaysOff(usuarios[0].id_myaxity).catch(error => {
                             console.log(error);
                         });
+                        daysOff.totalDays = daysOff.totalDays === undefined ? 0 : daysOff.totalDays;
                         await turnContext.sendActivity(`${usuarios[0].name} ${usuarios[0].lastName} tiene ${daysOff.totalDays} dias de vacaciones.`);
                         await turnContext.sendActivity('Te puedo ayudar en otra cosa?');
                         flow.lastQuestionAsked = question.none;

@@ -1,5 +1,5 @@
 const Request = require("request");
-const ENDPOINT = 'http://10.11.1.191:9090';
+const ENDPOINT = 'http://209c15cd.ngrok.io';
 
 class userService {
 
@@ -7,6 +7,7 @@ class userService {
         var URL = '';
         return new Promise((resolve, reject) => {
             URL = `http://10.11.1.13:7012/chatbot/chatbotHoliday?id=${id}`
+            console.log(URL);
             Request.get(URL, (error, response, body) => {
                 if (error) {
                     reject(error);

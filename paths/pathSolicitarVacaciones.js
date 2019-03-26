@@ -48,8 +48,8 @@ class SolicitarVacacionesPath {
                 var nombre = '';
                 var apellido = '';
                 try {
-                    results.entities.Name.forEach(name => { nombre = `${nombre} ${name}` });
-                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}` })
+                    results.entities.Name.forEach(name => { nombre = `${nombre} ${name}`.trim() });
+                    results.entities.LastName.forEach(lastname => { apellido = `${apellido} ${lastname}`.trim() })
                 } catch (error) {
                     console.log(error);
                 }
@@ -62,7 +62,8 @@ class SolicitarVacacionesPath {
                     if (numeroDeUuarios < 2) {
                         datosSolicitante.diasDisponibles = await userService.getDaysOff(datosSolicitante.usuarioSolicitante[0].id_myaxity).catch(error => {
                             console.log(error);
-                        })
+                        });
+                        datosSolicitante.diasDisponibles.totalDays = datosSolicitante.diasDisponibles.totalDays === undefined ? 0 : datosSolicitante.diasDisponibles.totalDays;
                         if (datosSolicitante.diasDisponibles.totalDays) {
                             await turnContext.sendActivity(`tienes ${datosSolicitante.diasDisponibles.totalDays} dias de vacaciones, cuantos deseas tomar?.`);
                             flow.lastQuestionAsked = question.vacaciones;

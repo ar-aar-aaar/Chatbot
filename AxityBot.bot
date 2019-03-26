@@ -1,26 +1,52 @@
 {
-    "name": "LuisBot",
-    "services": [
-        {
-            "type": "endpoint",
-            "name": "development",
-            "endpoint": "http://localhost:3978/api/messages",
-            "appId": "",
-            "appPassword": "",
-            "id": "1"
-        },
-        {
-          "type": "luis",
-          "name": "Chatbot",
-          "appId": "e955c187-f0b3-4cf8-9ba5-ff424ff1b16c",
-          "version": "0.1",
-          "endpoint": "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/e955c187-f0b3-4cf8-9ba5-ff424ff1b16c?verbose=true&timezoneOffset=-360&subscription-key=71b54188faf14158ac61563a80287642&q=",
-          "authoringKey": "71b54188faf14158ac61563a80287642",
-          "subscriptionKey": "71b54188faf14158ac61563a80287642",
-          "region": "westus",
-          "id": "206"
-      }
-    ],
-    "padlock": "",
-    "version": "2.0"
+  "name": "AxityBot",
+  "padlock": "n7+GqAi9sFpPNbCUHCr0ng==!5Z0SLFPuzeIQWbiGyXhmW8iEMKPuhn1c5MqL3eweB8ecWQ6owVVcBZvx5lOJJs7Y",
+  "version": "2.0",
+  "services": [
+    {
+      "tenantId": "00a05ce0-bd3d-4215-a569-c6261a20a39e",
+      "subscriptionId": "2a21c41a-2c53-434d-8239-be3ad0e3cf89",
+      "resourceGroup": "AxityBot",
+      "serviceName": "AxityBot",
+      "type": "abs",
+      "name": "AxityBot",
+      "id": "1"
+    },
+    {
+      "connectionString": "4Agkl46ad72DOjhV5MhQYQ==!3KGDaqGaO0BRGUGcO4OAQD6TDPcI7QHeqvCOsB8Zi+zdvIHgB9F0Ozl2t0MSCuHpEhygTD8MlYpao9rg6UFAhF9ofg5l1hGKanr45Z7RDsEgo8uKCiouISY9CA9QyXqh0IoKC18lxPtuDflpXdaJz/USCmOofknH/lx9A8DcTmP7g9EEU+A4jG2XzBvkpKIXnLQAV4u3XibCEqtyAhTZuQ==",
+      "tenantId": "00a05ce0-bd3d-4215-a569-c6261a20a39e",
+      "subscriptionId": "2a21c41a-2c53-434d-8239-be3ad0e3cf89",
+      "resourceGroup": "AxityBot",
+      "serviceName": "axitybot8686",
+      "type": "blob",
+      "id": "2"
+    },
+    {
+      "appId": "",
+      "appPassword": "",
+      "endpoint": "http://localhost:3978/api/messages",
+      "type": "endpoint",
+      "name": "development",
+      "id": "3"
+    },
+    {
+      "appId": "ef31d085-78c8-4341-b781-59a52b068f06",
+      "appPassword": "6dMMboY1CR+qG1XN2+5AFA==!CT/vCtZGjVN7yHwuK3vc7GAkMtQ3NCAmC4O953JOs+I=",
+      "endpoint": "https://axitybot.azurewebsites.net/api/messages",
+      "type": "endpoint",
+      "name": "production",
+      "id": "4"
+    },
+    {
+      "instrumentationKey": "PPxukLlXDx6VUwICQGy10w==!kiDxzDYmPcAvkN23XbNnIyt6VlBXS6VysP2Pi5lx38xxtaOrHp9dspT+rwA6ELm/",
+      "applicationId": "c1972c34-6a4a-4b4f-ba53-b6c9ecc8d194",
+      "apiKeys": {},
+      "tenantId": "00a05ce0-bd3d-4215-a569-c6261a20a39e",
+      "subscriptionId": "2a21c41a-2c53-434d-8239-be3ad0e3cf89",
+      "resourceGroup": "AxityBot",
+      "serviceName": "AxityBotsqtihk",
+      "type": "appInsights",
+      "id": "5"
+    }
+  ]
 }

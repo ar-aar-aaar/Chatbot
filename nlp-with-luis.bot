@@ -1,0 +1,26 @@
+{
+    "name": "LuisBot",
+    "services": [
+        {
+            "type": "endpoint",
+            "name": "development",
+            "endpoint": "http://localhost:3978/api/messages",
+            "appId": "",
+            "appPassword": "",
+            "id": "1"
+        },
+        {
+          "type": "luis",
+          "name": "Chatbot",
+          "appId": "e955c187-f0b3-4cf8-9ba5-ff424ff1b16c",
+          "version": "0.1",
+          "endpoint": "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/e955c187-f0b3-4cf8-9ba5-ff424ff1b16c?verbose=true&timezoneOffset=-360&subscription-key=71b54188faf14158ac61563a80287642&q=",
+          "authoringKey": "71b54188faf14158ac61563a80287642",
+          "subscriptionKey": "71b54188faf14158ac61563a80287642",
+          "region": "westus",
+          "id": "206"
+      }
+    ],
+    "padlock": "",
+    "version": "2.0"
+}
